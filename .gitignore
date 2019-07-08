@@ -1,0 +1,6 @@
+*.dc.dat
+*.dc.lastscan
+*.csv
+*.env
+*.dll
+*.exe
