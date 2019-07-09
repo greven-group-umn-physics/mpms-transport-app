@@ -62,25 +62,27 @@ datafile_MPMS = 'data.dc.dat'
 if op.exists(datafile_MPMS):
     if input("MPMS data file already exists. Delete? [y/N]: ") == 'y':
         os.remove(datafile_MPMS)
-        input("MPMS data file deleted. Start MultiVu sequence, then press Enter.")
-else:
-    input("MPMS data file doesn't exist. Start MultiVu sequence, then press Enter.")
 
-
+class Dontmeasure(Exception):
+    pass
 
 def getMPMS_data(datafile, n_lines):
-    with open(datafile) as f:
-        file = f.readlines()
-        n = len(file)
-        if n <= n_lines:
-            plt.pause(0.2)
-            return None
-        else:
-            n_lines = n
-    line = file[-1].split(',')
-    tem = float(line[3])
-    H = float(line[2])
-    return tem, H, n_lines
+    try:
+        with open(datafile) as f:
+            file = f.readlines()
+            n = len(file)
+            if n <= n_lines:
+                plt.pause(0.2)
+                raise Dontmeasure
+            else:
+                n_lines = n
+        line = file[-1].split(',')
+        tem = float(line[3])
+        H = float(line[2])
+        return tem, H, n_lines
+    except OSError:
+        plt.pause(0.2)
+        raise Dontmeasure
 
 def measure_resistivity(lockin, shunt_resistance):
     src = float(lockin.query('OA.').split()[0])
@@ -118,11 +120,8 @@ n_lines = 0
 while True:
     try:
         try:
-            answer = getMPMS_data(datafile_MPMS, n_lines)
-            if answer is not None:
-                tem, H, n_lines = answer
-            else:
-                continue
+            tem, H, n_lines = getMPMS_data(datafile_MPMS, n_lines)
+
             src_now, ch1r_now, ch2r_now, rho_now = measure_resistivity(lockin, shunt_resistance=1e4)
 
             df = df.append(dict(src=src_now, ch1r = ch1r_now, ch2r = ch2r_now, temp = tem, rho = rho_now, time = datetime.datetime.now(), field = H,), ignore_index=True)
@@ -137,6 +136,8 @@ while True:
             # field.append(H)
             # times.append(datetime.datetime.now())
             print(df.tail(1))
+        except Dontmeasure:
+            continue
         except VisaIOError:
             pass
         except ValueError:
