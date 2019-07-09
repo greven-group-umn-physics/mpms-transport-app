@@ -27,6 +27,8 @@ import pandas as pd
 import visa as v
 from visa import VisaIOError
 import matplotlib.pyplot as plt
+import os as os
+import os.path as op
 import datetime
 
 # Config variables
@@ -55,6 +57,14 @@ df = pd.DataFrame(dict(time = [], src=[], ch1r = [], ch2r = [], temp = [], rho =
 
 datafile_write = 'data_written.csv'
 datafile_MPMS = 'data.dc.dat'
+
+if op.exists(datafile_MPMS):
+    if input("MPMS data file already exists. Delete? [y/N]: ") == 'y':
+        os.remove(datafile_MPMS)
+        input("MPMS data file deleted. Start MultiVu sequence, then press Enter.")
+else:
+    input("MPMS data file doesn't exist. Start MultiVu sequence, then press Enter.")
+
 
 
 def getMPMS_data(datafile, n_lines):
