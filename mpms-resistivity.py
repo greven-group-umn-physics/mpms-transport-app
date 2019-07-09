@@ -56,7 +56,7 @@ lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
 
 df = pd.DataFrame(dict(time = [], src=[], ch1r = [], ch2r = [], temp = [], rho = [], field = [],)) 
 
-datafile_write = 'cu-RvsT.csv'
+datafile_write = 'cu-RvsT-2.csv'
 datafile_MPMS = 'data.dc.dat'
 
 if op.exists(datafile_MPMS):
@@ -123,7 +123,7 @@ while True:
                 tem, H, n_lines = answer
             else:
                 continue
-            src_now, ch1r_now, ch2r_now, rho_now = measure_resistivity(lockin, shunt_resistance=1e5)
+            src_now, ch1r_now, ch2r_now, rho_now = measure_resistivity(lockin, shunt_resistance=1e4)
 
             df = df.append(dict(src=src_now, ch1r = ch1r_now, ch2r = ch2r_now, temp = tem, rho = rho_now, time = datetime.datetime.now(), field = H,), ignore_index=True)
             with open(datafile_write, 'a') as f:
