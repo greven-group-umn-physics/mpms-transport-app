@@ -88,7 +88,7 @@ def measure_resistivity(lockin, shunt_resistance):
     src = float(lockin.query('OA.').split()[0])
     ch1r = float(lockin.query('MAG1.').split()[0])
     ch2r = float(lockin.query('MAG2.').split()[0])
-    current = src / shunt_resistance + 50 # 50 ohm internal resistiance
+    current = src / (shunt_resistance + 50 + 12) # 50 ohm internal resistiance
     rho = ch1r / current
     return src, ch1r, ch2r, rho
 
