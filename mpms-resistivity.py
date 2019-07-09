@@ -27,6 +27,7 @@ import pandas as pd
 import visa as v
 from visa import VisaIOError
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gs
 import os as os
 import os.path as op
 import datetime
@@ -92,14 +93,25 @@ def measure_resistivity(lockin, shunt_resistance):
 # TODO: field = []
 
 fig = plt.figure()
-ax = fig.add_subplot(311)
-line1, = ax.plot(df['ch1r'], df['temp'], 'r.-')
-line2, = ax.plot(df['ch2r'], df['temp'], 'b.-')
-line3, = ax.plot(df['rho'], df['temp'], 'k.-')
-ax2 = fig.add_subplot(312)
-line4, = ax2.plot_date(df['temp'], df['time'], 'k.-')
-ax3 = fig.add_subplot(313)
-line5, = ax3.plot_date(df['field'], df['time'], 'k.-')
+grid = gs.GridSpec(3, 2, figure=fig)
+ax1 = fig.add_subplot(grid[0,:])
+ax1.set_xlabel("T (K)")
+ax1.set_ylabel("R (ohm)")
+line0, = ax1.plot(df['rho'], df['temp'], 'k.-')
+ax2 = fig.add_subplot(grid[1,:])
+ax2.set_xlabel("T")
+ax2.set_ylabel("V (V)")
+line1, = ax2.plot(df['ch1r'], df['temp'], 'r.-', label='Ch. 1')
+line2, = ax2.plot(df['ch2r'], df['temp'], 'b.-', label='Ch. 2')
+ax2.legend()
+ax3 = fig.add_subplot(grid[2,0])
+ax3.set_xlabel("time")
+ax3.set_ylabel("T (K)")
+line3, = ax3.plot_date(df['temp'], df['time'], 'k.-')
+ax4 = fig.add_subplot(grid[2,1])
+ax4.set_xlabel("time")
+ax4.set_ylabel("H (Oe)")
+line4, = ax4.plot_date(df['field'], df['time'], 'k.-')
 
 print("Start of loop message. Press 'CTRL + C' to stop measuring") # and save the data.")
 n_lines = 0
@@ -136,13 +148,13 @@ while True:
         line1.set_xdata(df['temp'])
         line2.set_ydata(df['ch2r'])
         line2.set_xdata(df['temp'])
-        line3.set_ydata(df['rho'])
-        line3.set_xdata(df['temp'])
-        line4.set_ydata(df['temp'])
+        line0.set_ydata(df['rho'])
+        line0.set_xdata(df['temp'])
+        line3.set_ydata(df['temp'])
+        line3.set_xdata(df['time'])
+        line4.set_ydata(df['field'])
         line4.set_xdata(df['time'])
-        line5.set_ydata(df['field'])
-        line5.set_xdata(df['time'])
-        for a in [ax, ax2, ax3]:
+        for a in [ax1, ax2, ax3, ax4]:
             a.relim()
             a.autoscale_view()
 
