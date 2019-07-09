@@ -19,4 +19,4 @@ To do a measurement:
 6. When you want to stop, press `Ctrl + C` in the python script window.
 
 ## Development notes
-This is setup in a (Windows? Python?) `virtualenv`. To enter the `virtualenv` in a shell (on the MPMS control computer), open a Command Prompt (Powershell doesn't work?) and type `workon QdPyInterface`.
+This is setup in a (Windows? Python?) `virtualenv`. To enter the `virtualenv` in a shell (on the MPMS control computer), open a Command Prompt and type `workon QdPyInterface`. Note that `workon` is a `cmd` batch file. To use it in PowerShell, try some of the work-arounds [here](https://stackoverflow.com/questions/38944525/workon-command-doesnt-work-in-windows-powershell-to-activate-virtualenv).
