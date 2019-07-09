@@ -83,13 +83,14 @@ def measure_resistivity(lockin, shunt_resistance):
 
 fig = plt.figure()
 ax = fig.add_subplot(311)
-line1, = ax.plot(ch1r, temp, 'r.-')
-line2, = ax.plot(ch2r, temp, 'b.-')
-line3, = ax.plot(rho, temp, 'k.-')
+line1, = ax.plot(df['ch1r'], df['temp'], 'r.-')
+line2, = ax.plot(df['ch2r'], df['temp'], 'b.-')
+line3, = ax.plot(df['rho'], df['temp'], 'k.-')
 ax2 = fig.add_subplot(312)
-line4, = ax2.plot_date(temp, times, 'k.-')
+line4, = ax2.plot_date(df['temp'], df['time'], 'k.-')
 ax3 = fig.add_subplot(313)
-line5, = ax3.plot_date(field, times, 'k.-')
+line5, = ax3.plot_date(df['field'], df['time'], 'k.-')
+
 print("Start of loop message. Press 'CTRL + C' to stop measuring") # and save the data.")
 n_lines = 0
 while True:
