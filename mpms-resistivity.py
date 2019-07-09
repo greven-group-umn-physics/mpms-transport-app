@@ -55,7 +55,7 @@ lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
 
 df = pd.DataFrame(dict(time = [], src=[], ch1r = [], ch2r = [], temp = [], rho = [], field = [],)) 
 
-datafile_write = 'data_written.csv'
+datafile_write = 'cu-RvsT.csv'
 datafile_MPMS = 'data.dc.dat'
 
 if op.exists(datafile_MPMS):
