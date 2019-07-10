@@ -14,7 +14,7 @@ class AbstractVISADriver(object):
     visalib: 'ni' or 'ks' (national instruments/keysight)
     """
 
-    def __init__(self, InstrumentAddress, visalib='ni', **kwargs):
+    def __init__(self, InstrumentAddress, **kwargs):
         super(AbstractVISADriver, self).__init__(**kwargs)
 
         self._comLock = threading.Lock()

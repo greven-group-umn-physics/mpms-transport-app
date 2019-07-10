@@ -32,13 +32,13 @@ import os.path as op
 import datetime
 
 
-from .util import Dontmeasure
-from .util import geomfactor
-from .util import getMPMS_data
+from util import Dontmeasure
+from util import geomfactor
+from util import getMPMS_data
 
-from .drivers import DSP7625
+from drivers import DSP7265
 
-from .measuring import measure_resistance
+from measuring import measure_resistance
 
 
 # Config variables
@@ -53,7 +53,26 @@ lockin_amp = 1  # amplitude in μV
 # lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
 # TODO: lockin.write('') # set up config variables ...
 
-lockin = DSP7625('GPIB0::12::INSTR')
+lockin = DSP7265(InstrumentAddress='GPIB0::12::INSTR')
+
+# SENSITIVITIES = [
+#     0.0, 2.0e-9, 5.0e-9, 10.0e-9, 20.0e-9, 50.0e-9, 100.0e-9,
+#     200.0e-9, 500.0e-9, 1.0e-6, 2.0e-6, 5.0e-6, 10.0e-6,
+#     20.0e-6, 50.0e-6, 100.0e-6, 200.0e-6, 500.0e-6, 1.0e-3,
+#     2.0e-3, 5.0e-3, 10.0e-3, 20.0e-3, 50.0e-3, 100.0e-3,
+#     200.0e-3, 500.0e-3, 1.0
+# ]
+
+# TIME_CONSTANTS = [
+#     10.0e-6, 20.0e-6, 40.0e-6, 80.0e-6, 160.0e-6, 320.0e-6,
+#     640.0e-6, 5.0e-3, 10.0e-3, 20.0e-3, 50.0e-3, 100.0e-3,
+#     200.0e-3, 500.0e-3, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0,
+#     100.0, 200.0, 500.0, 1.0e3, 2.0e3, 5.0e3, 10.0e3,
+#     20.0e3, 50.0e3
+# ]
+
+# lockin.time_constant = 5
+# lockin.sensitivity = 200.0e-3
 
 df = pd.DataFrame(dict(time=[], src=[], ch1r=[],
                        ch2r=[], temp=[], rho=[],
@@ -108,7 +127,8 @@ while True:
                                 resistance=rho_now, time=datetime.datetime.now(),
                                 field=H,
                                 resistivity=rho_now *
-                                geomfactor(**SAMPLE_DIMENSIONS),
+                                geomfactor(**SAMPLE_DIMENSIONS), 
+                                rho=rho_now,
                                 ), ignore_index=True)
 
             with open(datafile_write, 'a') as f:
