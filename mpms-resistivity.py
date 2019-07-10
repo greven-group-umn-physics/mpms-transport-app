@@ -23,13 +23,22 @@ Script usage:
 # import time as t
 # import numpy as np
 import pandas as pd
-import visa as v
+# import visa as v
 from visa import VisaIOError
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 import os as os
 import os.path as op
 import datetime
+
+
+from .util import Dontmeasure
+from .util import geomfactor
+from .util import getMPMS_data
+
+from .drivers import DSP7625
+
+from .measuring import measure_resistance
 
 
 # Config variables
@@ -41,9 +50,10 @@ lockin_amp = 1  # amplitude in μV
 
 
 # Set up instruments
-lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
+# lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
 # TODO: lockin.write('') # set up config variables ...
 
+lockin = DSP7625('GPIB0::12::INSTR')
 
 df = pd.DataFrame(dict(time=[], src=[], ch1r=[],
                        ch2r=[], temp=[], rho=[],
@@ -57,67 +67,6 @@ SAMPLE_DIMENSIONS = dict(cs1=1e3, cs2=1e3, length=1e3)
 if op.exists(datafile_MPMS):
     if input("MPMS data file already exists. Delete? [y/N]: ") == 'y':
         os.remove(datafile_MPMS)
-
-
-class Dontmeasure(Exception):
-    pass
-
-
-def geomfactor(cs1, cs2, length):
-    '''convert units (including sample geometries) so that [Ohm] becomes [Ohm m]
-
-    cs1 and cs2 are the sides making up the cross-section:
-        Area of cross section: A = cs1 * cs2
-
-    length is the length of the path the current takes, as in:
-
-    R = \rho * Length / A
-    \rho = R * A / Length
-
-    all units to be given in [mm]
-
-    for other units ([Ohm cm]), the unit conversion
-        needs to be applied 'inversly'
-        [Ohm m] to [Ohm cm] has a factor of 1e2
-
-    returns: factor to be applied to the resistance
-    '''
-    # area in mm^2
-    Amm2 = cs1 * cs2
-    # area in m^2
-    Am2 = Amm2 * 1e-6
-    # length in m
-    le = length * 1e-3
-    fac = Am2 / le
-    return fac
-
-
-def getMPMS_data(datafile, n_lines):
-    try:
-        with open(datafile) as f:
-            file = f.readlines()
-            n = len(file)
-            if n <= n_lines:
-                plt.pause(0.2)
-                raise Dontmeasure
-            else:
-                n_lines = n
-        line = file[-1].split(',')
-        tem = float(line[3])
-        H = float(line[2])
-        return tem, H, n_lines
-    except OSError:
-        plt.pause(0.2)
-        raise Dontmeasure
-
-
-def measure_resistivity(lockin, shunt_resistance):
-    src = float(lockin.query('OA.').split()[0])
-    ch1r = float(lockin.query('MAG1.').split()[0])
-    ch2r = float(lockin.query('MAG2.').split()[0])
-    current = src / (shunt_resistance + 50 + 12)  # 50 ohm internal resistiance
-    rho = ch1r / current
-    return src, ch1r, ch2r, rho
 
 
 fig = plt.figure()
@@ -151,7 +100,7 @@ while True:
         try:
             tem, H, n_lines = getMPMS_data(datafile_MPMS, n_lines)
 
-            src_now, ch1r_now, ch2r_now, rho_now = measure_resistivity(
+            src_now, ch1r_now, ch2r_now, rho_now = measure_resistance(
                 lockin, shunt_resistance=1e4)
 
             df = df.append(dict(src=src_now, ch1r=ch1r_now,
@@ -161,6 +110,7 @@ while True:
                                 resistivity=rho_now *
                                 geomfactor(**SAMPLE_DIMENSIONS),
                                 ), ignore_index=True)
+
             with open(datafile_write, 'a') as f:
                 df.tail(1).to_csv(f, header=f.tell() == 0)
 
