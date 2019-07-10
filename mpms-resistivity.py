@@ -59,8 +59,6 @@ LockIn.voltage = 5
 LockIn.frequency = 10
 LockIn.time_constant = 5
 
-print(LockIn.voltage, LockIn.mag)
-
 
 # Config variables
 # NOTE: Instrument setup is not (yet) implemented. Use the front panel.
@@ -73,6 +71,10 @@ lockin_amp = 1  # amplitude in μV
 # Set up instruments
 lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
 # TODO: lockin.write('') # set up config variables ...
+
+
+print(LockIn.voltage, LockIn.mag, float(lockin.query(
+    'MAG1.').split()[0]), float(lockin.query('MAG2.').split()[0]))
 
 
 df = pd.DataFrame(dict(time=[], src=[], ch1r=[],
