@@ -34,5 +34,14 @@ def geomfactor(cs1, cs2, length):
 data = pd.read_csv('cu-RvsT-3.csv')
 
 
-plt.plot(data['temp'], data['rho'] * geomfactor(1.15, 1.28. 3.1))
+fig = plt.figure()
+
+ax = fig.add_subplot(111)
+ax.plot(data['temp'], data['rho'] * geomfactor(1.15, 1.28, 3.1))
+
+ax.set_xlabel("T (K)")
+ax.set_ylabel(r"$\rho$ ($\Omega$ m)")
+ax.ticklabel_format(axis='y', style='sci', scilimits=(0, 2))
+plt.tight_layout()
+
 plt.show()
