@@ -54,10 +54,12 @@ lockin = v.ResourceManager().open_resource('GPIB0::12::INSTR')
 # times = []
 # field = []
 
-df = pd.DataFrame(dict(time = [], src=[], ch1r = [], ch2r = [], temp = [], rho = [], field = [],)) 
+df = pd.DataFrame(dict(time = [], src=[], ch1r = [], ch2r = [], temp = [], rho = [], field = [],, resistivity=[],)) 
 
 datafile_write = 'cu-RvsT-2.csv'
 datafile_MPMS = 'data.dc.dat'
+
+SAMPLE_DIMENSIONS = dict(cs1=1e3, cs2=1e3, length=1e3)
 
 if op.exists(datafile_MPMS):
     if input("MPMS data file already exists. Delete? [y/N]: ") == 'y':
@@ -65,6 +67,35 @@ if op.exists(datafile_MPMS):
 
 class Dontmeasure(Exception):
     pass
+
+def geomfactor(cs1, cs2, length):
+    '''convert units (including sample geometries) so that [Ohm] becomes [Ohm m]
+
+    cs1 and cs2 are the sides making up the cross-section:
+        Area of cross section: A = cs1 * cs2
+
+    length is the length of the path the current takes, as in:
+
+    R = \rho * Length / A
+    \rho = R * A / Length
+
+    all units to be given in [mm]
+
+    for other units ([Ohm cm]), the unit conversion
+        needs to be applied 'inversly'
+        [Ohm m] to [Ohm cm] has a factor of 1e2
+
+    returns: factor to be applied to the resistance
+    '''
+    # area in mm^2
+    Amm2 = cs1 * cs2
+    # area in m^2
+    Am2 = Amm2 * 1e-6
+    # length in m
+    le = length * 1e-3
+    fac = Am2 / le
+    return fac
+
 
 def getMPMS_data(datafile, n_lines):
     try:
@@ -98,8 +129,8 @@ fig = plt.figure()
 grid = gs.GridSpec(3, 2, figure=fig)
 ax1 = fig.add_subplot(grid[0,:])
 ax1.set_xlabel("T (K)")
-ax1.set_ylabel("R (ohm)")
-line0, = ax1.plot(df['rho'], df['temp'], 'k.-')
+ax1.set_ylabel(r"$\rho$ ($\Omega$ m)")
+line0, = ax1.plot(df['resistivity'], df['temp'], 'k.-')
 ax2 = fig.add_subplot(grid[1,:])
 ax2.set_xlabel("T (K)")
 ax2.set_ylabel("V (V)")
@@ -124,7 +155,7 @@ while True:
 
             src_now, ch1r_now, ch2r_now, rho_now = measure_resistivity(lockin, shunt_resistance=1e4)
 
-            df = df.append(dict(src=src_now, ch1r = ch1r_now, ch2r = ch2r_now, temp = tem, rho = rho_now, time = datetime.datetime.now(), field = H,), ignore_index=True)
+            df = df.append(dict(src=src_now, ch1r = ch1r_now, ch2r = ch2r_now, temp = tem, rho = rho_now, time = datetime.datetime.now(), field = H,resistivity=rho_now * geomfactor(**SAMPLE_DIMENSIONS)), ignore_index=True)
             with open(datafile_write, 'a') as f:
                 df.tail(1).to_csv(f, header=f.tell()==0)
 
@@ -149,7 +180,7 @@ while True:
         line1.set_xdata(df['temp'])
         line2.set_ydata(df['ch2r'])
         line2.set_xdata(df['temp'])
-        line0.set_ydata(df['rho'])
+        line0.set_ydata(df['resistivity'])
         line0.set_xdata(df['temp'])
         line3.set_ydata(df['temp'])
         line3.set_xdata(df['time'])
